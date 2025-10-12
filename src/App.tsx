@@ -2,9 +2,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import Dashboard from "./components/protected/Dashboard";
-import FileList from "./components/protected/FileList";
+import FileShare from "./components/protected/FileShare";
 import { AuthProvider } from "./context/AuthProvider";
 import ProtectedRoute from "./components/protected/ProtectedRoute";
+import View from "./components/View";
 
 function App() {
     return (
@@ -16,9 +17,8 @@ function App() {
             <Route path="/dashboard" element={
               <ProtectedRoute><Dashboard /></ProtectedRoute>
             }/>
-            <Route path="/list" element={
-              <ProtectedRoute><FileList /></ProtectedRoute>
-            }/>
+            <Route path="/share" element={<ProtectedRoute><FileShare /></ProtectedRoute>} />
+            <Route path="/view/:id" element={<View />} />
           </Routes>
         </AuthProvider>
       </BrowserRouter>

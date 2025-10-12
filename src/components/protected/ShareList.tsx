@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import {
   Table,
@@ -12,29 +11,28 @@ import {
 import { Button } from "../ui/button";
 import { useAuth } from "@/context/useAuth";
 
-interface FileResponseDTO {
+export interface ShareResponseDTO {
   id: string;
+  fileId: string;
   filename: string;
   size: number;
-  contentType: string;
-  createdAt: string;
+  expiryAt: string;
 }
 
-const FileList = () => {
-  const [files, setFiles] = useState<FileResponseDTO[]>([]);
+const ShareList = () => {
+  const [files, setFiles] = useState<ShareResponseDTO[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<string>("");
   const { logout } = useAuth();
-  const navigate = useNavigate();
 
   useEffect(() => {
     async function fetchFiles(): Promise<void> {
       try {
         setLoading(true);
-        setError('');
-        const token = localStorage.getItem('accessToken');
-        const response = await fetch(`http://localhost:5000/api/file`, {
+        setError("");
+        const token = localStorage.getItem("accessToken");
+        const response = await fetch(`http://localhost:5000/api/share/links`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -47,7 +45,7 @@ const FileList = () => {
           throw new Error(`Failed to fetch files: ${response.status}`);
         }
 
-        const data: FileResponseDTO[] = await response.json();
+        const data: ShareResponseDTO[] = await response.json();
         setFiles(data);
       } catch (err) {
         console.error("Upload error:", err);
@@ -66,10 +64,13 @@ const FileList = () => {
       setLoading(true);
 
       const token = localStorage.getItem("accessToken");
-      const response = await fetch(`http://localhost:5000/api/file/view/${id}`, {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `http://localhost:5000/api/file/view/${id}`,
+        {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       if (response.status === 401) {
         logout();
@@ -103,20 +104,20 @@ const FileList = () => {
     }
   };
 
-  const handleFileDelete = async () => {
+  const handleRevoke = async () => {
     if (selectedFiles.length === 0) return;
     try {
       setError("");
       setLoading(true);
 
       const token = localStorage.getItem("accessToken");
-      const response = await fetch("http://localhost:5000/api/file/delete", {
+      const response = await fetch("http://localhost:5000/api/share/links/revoke", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ fileIds: selectedFiles }),
+        body: JSON.stringify({ shareIds: files }),
       });
 
       if (response.status === 401) {
@@ -138,27 +139,17 @@ const FileList = () => {
     }
   };
 
-  const handleFileDownload = async () => {};
-
   return (
     <Card className="w-full max-w-4xl mx-auto shadow-lg">
       <CardHeader className="flex justify-between items-center">
-        <CardTitle className="text-xl">Your Files</CardTitle>
+        <CardTitle className="text-xl">Shared Files</CardTitle>
         <div>
           {selectedFiles.length > 0 && (
             <Button
-              onClick={handleFileDelete}
+              onClick={handleRevoke}
               className="bg-red-600 hover:bg-red-700 mr-1"
             >
-              Delete Selected ({selectedFiles.length})
-            </Button>
-          )}
-          {selectedFiles.length > 0 && (
-            <Button
-              onClick={handleFileDownload}
-              className="bg-blue-900 hover:bg-blue-900"
-            >
-              Download Selected ({selectedFiles.length})
+              Revoke Selected Links ({selectedFiles.length})
             </Button>
           )}
         </div>
@@ -166,9 +157,9 @@ const FileList = () => {
       <CardContent>
         {error && <p className="text-red-500 text-sm m-2 mt-1">{error}</p>}
         {loading ? (
-          <p className="text-gray-500">Loading files...</p>
+          <p className="text-gray-500">Loading links...</p>
         ) : files.length === 0 ? (
-          <p className="text-gray-500">No files available</p>
+          <p className="text-gray-500">No shared links available</p>
         ) : (
           <Table>
             <TableHeader>
@@ -182,8 +173,7 @@ const FileList = () => {
                 </TableHead>
                 <TableHead>Filename</TableHead>
                 <TableHead>Size (KB)</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Uploaded At</TableHead>
+                <TableHead>Expiry At</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -198,15 +188,19 @@ const FileList = () => {
                   </TableCell>
                   <TableCell>{file.filename}</TableCell>
                   <TableCell>{Math.round(file.size / 1024)}</TableCell>
-                  <TableCell>{file.contentType}</TableCell>
+                  <TableCell>{new Date(file.expiryAt).toLocaleString()}</TableCell>
                   <TableCell>
-                    {new Date(file.createdAt).toLocaleString()}
+                    <Button onClick={() => handleFileOpen(file.fileId)}>
+                      Open File
+                    </Button>
                   </TableCell>
                   <TableCell>
-                    <Button onClick={() => handleFileOpen(file.id)}>Open</Button>
-                  </TableCell>
-                  <TableCell>
-                    <Button onClick={() => navigate(`/share`, { state: file })}>Share</Button>
+                    <Button
+                      onClick={() => navigator.clipboard.writeText(`http://localhost:5000/api/share/links/${file.fileId}`)}
+                      className="w-full"
+                    >
+                      Copy Link
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -218,4 +212,4 @@ const FileList = () => {
   );
 };
 
-export default FileList;
+export default ShareList;

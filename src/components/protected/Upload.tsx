@@ -32,6 +32,9 @@ const UploadPage = () => {
     }
     try{
       setUploading(true);
+      setError('');
+      setMessage('');
+      
       const token = localStorage.getItem('accessToken');
       const presignedURL = await fetch("http://localhost:5000/api/file/upload",
         {
@@ -74,11 +77,12 @@ const UploadPage = () => {
         })
       );
 
-      setUploading(false);
       setMessage("Files Uploaded successfully");
     }catch(err){
       console.error("Upload error:", err);
       setError("Could not upload files.")
+    }finally{
+      setUploading(false);
     }
   }
 

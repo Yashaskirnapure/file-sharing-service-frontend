@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button"
 import { useAuth } from "@/context/useAuth";
 
 const Sidebar = ({ active, setActive }: { active: string; setActive: (v: string) => void }) => {
-  const items = ["Upload", "My Files", "Downloads"];
+  const items = ["Upload", "My Files", "Manage"];
   const { user, logout } = useAuth();
 
   return (

@@ -2,6 +2,7 @@ import { useState } from "react"
 import Sidebar from "./Sidebar"
 import UploadPage from "./Upload"
 import FileList from "./FileList"
+import ShareList from "./ShareList"
 
 const Dashboard = () => {
 	const [active, setActive] = useState("Upload")
@@ -14,7 +15,7 @@ const Dashboard = () => {
 			<main className="flex-1 p-6 overflow-y-auto">
 			{active === "Upload" && <UploadPage />}
 			{active === "My Files" && <FileList/>}
-			{active === "Downloads" && <div>Downloads section here</div>}
+			{active === "Manage" && <ShareList/>}
 			</main>
 		</div>
 	)
